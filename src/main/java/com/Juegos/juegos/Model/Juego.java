@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
 
 public class Juego {
+    private int ID;
     private String Nombre; 
     private String Genero;
-    private int Año;
+    private String Fecha_Publicacion;
     private String Desarrollador;
 }
