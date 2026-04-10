@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Id;
-
 
 public class JuegoRepository {
     //se crea la lista que guarda los juegos
