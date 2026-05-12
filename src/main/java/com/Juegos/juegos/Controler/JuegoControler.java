@@ -2,13 +2,8 @@ package com.Juegos.juegos.Controler;
 import com.Juegos.juegos.Model.Juego;
 import com.Juegos.juegos.Service.JuegoService;
 
-import lombok.Delegate;
-
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.javapoet.LordOfTheStrings.ReturnBuilderSupport;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
