@@ -14,7 +14,7 @@ public class JuegoController {
     
     @GetMapping
     public List<Juego> listaJuegos(){
-        return juegoService.getJuego();
+        return juegoService.findAll();
     }
 
 }
