@@ -39,4 +39,7 @@ build/
 .env
 
 ### Docker ###
+HEAD
 docker-compose.override.yml
+docker-compose.override.yml
+4de4c43 (Primer commit proyecto DevOps)
