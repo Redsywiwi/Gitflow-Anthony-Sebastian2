@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+
+  app:
+    build: .
+    container_name: springboot-app
+
+    ports:
+      - "8080:8080"
+
+    restart: always
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/juegosdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8
+
+    container_name: mysql-db
+
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: juegosdb
+
+    ports:
+      - "3307:3306"
+
+  sonarqube:
+    image: sonarqube:lts-community
+
+    container_name: sonarqube
+
+    restart: always
+
+    ports:
+      - "9000:9000"

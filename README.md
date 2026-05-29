@@ -24,3 +24,36 @@ FEATURE-DEVELOP-MAIN
 
 y en el caso de que alguna de las actualizaciones que pasaron por main tiene un error se debe hacer un arreglo rapido por lo cual se debe pasar por
 HOTFIX-MAIN
+
+
+
+
+# Docker Compose
+
+El proyecto utiliza Docker Compose para orquestar:
+
+- Aplicación Spring Boot
+- Base de datos MySQL
+- SonarQube
+
+
+
+# Integración Continua
+
+GitHub Actions automatiza:
+
+- Compilación
+- Testing
+- Build Docker
+- Despliegue de contenedores
+
+
+
+# GitFlow
+
+El proyecto utiliza estrategia GitFlow:
+
+- main
+- develop
+- feature/*
+- hotfix/*

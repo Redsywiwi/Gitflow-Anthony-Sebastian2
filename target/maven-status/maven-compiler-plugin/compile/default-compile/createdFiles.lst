@@ -1,4 +1,3 @@
-com\Juegos\juegos\Controler\JuegoControler.class
 com\Juegos\juegos\Controller\JuegoController.class
 com\Juegos\juegos\Repository\JuegoRepository.class
 com\Juegos\juegos\JuegosApplication.class
