@@ -1,10 +1,10 @@
-name: CI/CD Pipeline
+name: CICD_Pipeline
 
 on:
   push:
-    branches: [main,develop ]
+    branches: [main,develop]
   pull_request:
-    branches: [ main,develop ]
+    branches: [ main,develop]
 
 env:
   DOCKER_IMAGE: juegos-microservicio
