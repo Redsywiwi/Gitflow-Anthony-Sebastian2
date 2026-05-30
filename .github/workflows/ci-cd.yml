@@ -15,26 +15,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+        name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Java 21
+        name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Ejecutar tests con JaCoCo
+        name: Dar permisos de ejecución a mvnw
+        run: chmod +x mvnw
+
+        name: Ejecutar tests con JaCoCo
         run: ./mvnw test jacoco:report -B
 
-      - name: Publicar reporte de cobertura
+        name: Publicar reporte de cobertura
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: target/site/jacoco/
 
-      - name: Verificar umbral de cobertura
+        name: Verificar umbral de cobertura
         run: ./mvnw jacoco:check -B
 
   security-scan:
@@ -43,34 +46,37 @@ jobs:
     needs: test 
 
     steps:
-      - name: Checkout código
+        name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Java 21
+        name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Instalar Snyk CLI
+        name: Instalar Snyk CLI
         uses: snyk/actions/setup@master
 
-      - name: Snyk – escaneo de dependencias Maven
+        name: Snyk – escaneo de dependencias Maven
         run: snyk test --file=pom.xml --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk – monitoreo continuo (registra en dashboard)
+        name: Snyk – monitoreo continuo (registra en dashboard)
         run: snyk monitor --file=pom.xml
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true  
 
-      - name: Compilar para SonarQube
+        name: Dar permisos de ejecución a mvnw
+        run: chmod +x mvnw
+
+        name: Compilar para SonarQube
         run: ./mvnw package -DskipTests -B
 
-      - name: Análisis SonarQube
+        name: Análisis SonarQube
         run: |
           ./mvnw sonar:sonar \
             -Dsonar.projectKey=${{ env.DOCKER_IMAGE }} \
@@ -79,7 +85,7 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -B
 
-      - name: Verificar Quality Gate de SonarQube
+        name: Verificar Quality Gate de SonarQube
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
         env:
@@ -92,13 +98,13 @@ jobs:
     needs: security-scan  
 
     steps:
-      - name: Checkout código
+        name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Docker Buildx
+        name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build imagen Docker
+        name: Build imagen Docker
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -107,10 +113,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Guardar imagen como artifact
+        name: Guardar imagen como artifact
         run: docker save ${{ env.DOCKER_IMAGE }}:${{ github.sha }} | gzip > image.tar.gz
 
-      - name: Subir imagen como artifact
+        name: Subir imagen como artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
@@ -124,26 +130,26 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
-      - name: Checkout código
+        name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Descargar imagen Docker
+        name: Descargar imagen Docker
         uses: actions/download-artifact@v4
         with:
           name: docker-image
 
-      - name: Cargar imagen Docker
+        name: Cargar imagen Docker
         run: docker load < image.tar.gz
 
-      - name: Tag imagen para docker-compose
+        name: Tag imagen para docker-compose
         run: docker tag ${{ env.DOCKER_IMAGE }}:${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest
 
-      - name: Levantar entorno con Docker Compose
+        name: Levantar entorno con Docker Compose
         run: |
           docker compose up -d --wait
         timeout-minutes: 5
 
-      - name: Verificar que la cosa responde (health check)
+        name: Verificar que la cosa responde (health check)
         run: |
           echo "Esperando que la cosa esté lista..."
           for i in $(seq 1 12); do
@@ -159,10 +165,10 @@ jobs:
           docker compose logs cosa
           exit 1
 
-      - name: Mostrar logs si falla el deploy
+        name: Mostrar logs si falla el deploy
         if: failure()
         run: docker compose logs
 
-      - name: Detener entorno (cleanup)
+        name: Detener entorno (cleanup)
         if: always()
         run: docker compose down -v
