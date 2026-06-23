@@ -2,6 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
+<<<<<<< HEAD
     branches:
       - main
       - develop
@@ -55,3 +56,177 @@ jobs:
       run: |
         sudo snap install kubectl --classic
         kubectl rollout history -f k8s/deployment.yaml || echo "Manifiesto estructurado correctamente"
+=======
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOCKER_IMAGE: juegos-microservicio
+
+jobs:
+
+  # IE1 - Build + Pruebas Unitarias (JUnit 5 + JaCoCo)
+  test:
+    name: "IE1 - Build y Tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Dar permisos de ejecucion a mvnw
+        run: chmod +x mvnw
+
+      - name: Ejecutar tests con JaCoCo
+        run: ./mvnw test jacoco:report -B
+
+      - name: Publicar reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Verificar umbral de cobertura
+        run: ./mvnw jacoco:check -B
+
+  # IE2 - Escaneo de dependencias (Snyk) + analisis de codigo (SonarQube)
+  security-scan:
+    name: "IE2 - Escaneo de Seguridad"
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Instalar Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Snyk - escaneo de dependencias Maven
+        run: snyk test --file=pom.xml --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk - monitoreo continuo
+        run: snyk monitor --file=pom.xml
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Dar permisos de ejecucion a mvnw
+        run: chmod +x mvnw
+
+      - name: Compilar para SonarQube
+        run: ./mvnw package -DskipTests -B
+
+      - name: Analisis SonarQube
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.projectKey=${{ env.DOCKER_IMAGE }} \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -B
+
+      - name: Verificar Quality Gate de SonarQube
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # IE3 - Build imagen Docker (se bloquea si security-scan fallo)
+  docker-build:
+    name: "IE3 - Build imagen Docker"
+    runs-on: ubuntu-latest
+    needs: security-scan
+
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4 
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build imagen Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Guardar imagen como artifact
+        run: docker save ${{ env.DOCKER_IMAGE }}:${{ github.sha }} | gzip > image.tar.gz
+
+      - name: Subir imagen como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: image.tar.gz
+          retention-days: 1
+
+  # IE4 - Despliegue automatico con Docker Compose
+  deploy:
+    name: "IE4 - Deploy con Docker Compose"
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Descargar imagen Docker
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      - name: Cargar imagen Docker
+        run: docker load < image.tar.gz
+
+      - name: Tag imagen para docker-compose
+        run: docker tag ${{ env.DOCKER_IMAGE }}:${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest
+
+      - name: Levantar entorno con Docker Compose
+        run: docker compose up -d --wait
+        timeout-minutes: 5
+
+      - name: Verificar health de la app
+        run: |
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "App respondiendo OK (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "Intento $i/12 - HTTP $STATUS. Reintentando en 10s..."
+            sleep 10
+          done
+          echo "La app no respondio a tiempo"
+          docker compose logs app
+          exit 1
+
+      - name: Mostrar logs si falla el deploy
+        if: failure()
+        run: docker compose logs
+
+      - name: Detener entorno
+        if: always()
+        run: docker compose down -v
+>>>>>>> 6fd7502198b11cfdc2d0ff32ee6b0dd8f0a8a98e

@@ -1,0 +1,41 @@
+
+version: 2
+updates:
+
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Redsywiwi"
+    labels:
+      - "dependencies"
+      - "java"
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot*"
+      test-libs:
+        patterns:
+          - "org.junit*"
+          - "org.mockito*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
