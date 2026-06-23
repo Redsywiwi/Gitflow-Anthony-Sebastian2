@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s # Tiempo en que recolectará los datos (CPU, Memoria, Errores)
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'spring-boot-juegos'
+    metrics_path: '/actuator/prometheus' # Ruta donde la app expone las métricas
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['juegos-app-service:8080'] # Apunta al servicio de tu aplicación
