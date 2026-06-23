@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: juegos-grafana-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  juegos-dashboard.json: |-
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "title": "Métricas de Infraestructura (IE3) - Uso de CPU y Memoria",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            { "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{container='juegos-app'})", "legendFormat": "Uso CPU App" },
+            { "expr": "container_memory_working_set_bytes{container='juegos-app'}", "legendFormat": "Uso Memoria App" }
+          ]
+        },
+        {
+          "title": "Métricas de Disponibilidad (IE1) - Estado de Peticiones y Errores",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            { "expr": "sum(rate(http_server_requests_seconds_count{status=~'5..'}[5m]))", "legendFormat": "Errores HTTP 5xx (Críticos)" },
+            { "expr": "sum(rate(http_server_requests_seconds_count{status=~'2..'}[5m]))", "legendFormat": "Peticiones Exitosas" }
+          ]
+        },
+        {
+          "title": "Métricas de Calidad CI/CD (IE3) - Cobertura de Pruebas (JaCoCo)",
+          "type": "gauge",
+          "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+          "fieldConfig": {
+            "defaults": {
+              "min": 0, "max": 100, "unit": "percent",
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 80 }] }
+            }
+          },
+          "targets": [{ "expr": "sonar_coverage_percentage", "legendFormat": "Porcentaje Cobertura" }]
+        },
+        {
+          "title": "Frecuencia de Despliegues y Tiempo de Ejecución Pipeline (IE3)",
+          "type": "stat",
+          "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+          "targets": [{ "expr": "github_actions_workflow_duration_seconds{workflow='CI/CD Pipeline'}", "legendFormat": "Duración Último Build" }]
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 36,
+      "style": "dark",
+      "tags": ["devops", "duoc"],
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "",
+      "title": "DevOps Dashboard - Monitoreo de Juegos App",
+      "version": 1
+    }

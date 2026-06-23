@@ -45,3 +45,6 @@ Para garantizar la estabilidad, disponibilidad y escalabilidad de la plataforma 
 
 3. **Métricas de Rendimiento de la Base de Datos:**
    * **Decisión Técnica:** Al capturar la telemetría de conexiones activas hacia la base de datos MySQL, el equipo de ingeniería puede tomar la decisión informada de optimizar consultas (queries ralentizadas) o incrementar el tamaño del pool de conexiones antes de que ocurra una denegación de servicio.
+
+4. **Visualización Centralizada (Dashboards de Métricas - IE3):**
+   * **Decisión Técnica:** Se ha estructurado un dashboard en Grafana (`k8s/grafana-dashboard.yaml`) que unifica la telemetría del proceso CI/CD (duración del pipeline y cobertura de JaCoCo obtenida desde SonarQube) con las métricas de rendimiento en producción (consumo de CPU, memoria y tasa de errores HTTP 5xx capturadas por Prometheus). Esto permite al equipo evaluar de un solo vistazo si una degradación del sistema se debe a un despliegue reciente o a una sobrecarga de infraestructura.
