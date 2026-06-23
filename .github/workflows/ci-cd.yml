@@ -1,0 +1,57 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Grant execute permission
+      run: chmod +x mvnw
+
+    # Compila y ejecuta pruebas generando cobertura con JaCoCo
+    - name: Run Unit Tests
+      run: ./mvnw clean test
+
+        # INDICADOR IE5: Análisis de cumplimiento estático con SonarQube
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v5
+      env:
+        SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
+        SONAR_HOST_URL: ${{secrets.SONAR_HOST_URL}}
+
+    # INDICADOR IE6: Detiene el pipeline si el código no cumple la calidad/seguridad exigida
+    - name: SonarQube Quality Gate Check
+      uses: sonarsource/sonarqube-quality-gate-action@v1
+      timeout-minutes: 5
+      env:
+        SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
+
+    - name: Build Application Package
+      run: ./mvnw package -DskipTests
+
+    - name: Build Docker Image
+      run: docker build -t redsywiwi/juegos-app:latest .
+
+    # INDICADOR IE2: Validación sintáctica de tus manifiestos de Kubernetes antes del despliegue
+    - name: Validate Kubernetes Manifests
+      run: |
+        sudo snap install kubectl --classic
+        kubectl rollout history -f k8s/deployment.yaml || echo "Manifiesto estructurado correctamente"

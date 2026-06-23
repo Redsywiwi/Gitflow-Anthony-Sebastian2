@@ -69,6 +69,24 @@
 			<version>0.8.13</version>
 			<type>maven-plugin</type>
 		</dependency>
+
+		<!-- Habilita el monitoreo nativo y estados de salud (Healthcheck) -->
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- Traduce las métricas internas de Spring al formato que entiende Prometheus -->
+		<dependency>
+    		<groupId>io.micrometer</groupId>
+    		<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<dependency>
+   			<groupId>com.h2database</groupId>
+    		<artifactId>h2</artifactId>
+   			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
