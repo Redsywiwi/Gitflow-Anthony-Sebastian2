@@ -1,13 +1,15 @@
-# Fase de construcción
-FROM maven:3.8.5-openjdk-17 AS build
-WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# Fase de ejecución
+# Usamos una imagen ligera de Java 17
 FROM eclipse-temurin:17-jre-alpine
+
+# Definimos el directorio de trabajo
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copiamos el JAR que ya generaste en la carpeta target
+# Asegúrate de que el nombre coincida exactamente con el que ves en tu carpeta
+COPY target/juegos-0.0.1-SNAPSHOT.jar app.jar
+
+# Exponemos el puerto
 EXPOSE 3000
+
+# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]

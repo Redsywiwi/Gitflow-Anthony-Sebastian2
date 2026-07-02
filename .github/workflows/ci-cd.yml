@@ -17,12 +17,15 @@ jobs:
         script: |
           cd /home/ec2-user/Gitflow-Anthony-Sebastian2
           git pull origin main
-          # Borramos imágenes antiguas para liberar espacio y evitar conflictos
-          sudo docker system prune -f
-          # Construimos
+          
+          # 1. Compilamos primero en el servidor
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+          
+          # 2. Construimos la imagen (usando el jar que acabamos de crear)
           sudo docker build -t mi-proyecto-profe .
-          # Detenemos y borramos contenedor
+          
+          # 3. Desplegamos
           sudo docker stop contenedor-profe || true
           sudo docker rm contenedor-profe || true
-          # Ejecutamos
           sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
