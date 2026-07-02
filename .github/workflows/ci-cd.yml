@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 name: Deploy to AWS EC2
+=======
+name: CI/CD Pipeline
+>>>>>>> bb12ad5d64ae2b875df820f0b5e2fd43815efbaa
 
 on:
   push:
     branches:
+<<<<<<< HEAD
       - develop
 
 jobs:
@@ -35,3 +40,45 @@ jobs:
             docker compose down
 
             docker compose up -d --build
+=======
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-test-security:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Grant execute permission
+      run: chmod +x mvnw
+
+    - name: Run Unit Tests
+      run: ./mvnw clean test
+
+    - name: Build Application
+      run: ./mvnw clean package -DskipTests
+
+    - name: Build Docker Image
+      run: docker build -t springboot-app .
+
+    - name: Start Containers
+      run: docker compose up -d
+
+    - name: Verify Running Containers
+      run: docker ps
+>>>>>>> bb12ad5d64ae2b875df820f0b5e2fd43815efbaa
