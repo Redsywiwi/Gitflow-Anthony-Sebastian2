@@ -15,14 +15,19 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}  # <-- Cambiamos esto para que use tu secreto de ayer
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # Entrar a la carpeta (Ojo: asegúrate de que se llame así en tu AWS)
-          cd /home/${{ secrets.EC2_USERNAME }}/Gitflow-Anthony-Sebastian2-main || cd /var/www/html
+          # Intentamos buscar dónde quedó tu carpeta
+          if [ -d "/home/ec2-user/Gitflow-Anthony-Sebastian2-main" ]; then
+            cd /home/ec2-user/Gitflow-Anthony-Sebastian2-main
+          else
+            echo "Carpeta no encontrada en /home/ec2-user, intentando otro lugar..."
+            cd /home/ec2-user
+          fi
           
           # Descargar cambios
           git pull origin main
           
-          # Comandos de Docker
-          docker build -t mi-proyecto-profe .
-          docker stop contenedor-profe || true
-          docker rm contenedor-profe || true
-          docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
+          # Ejecutar Docker con sudo (para evitar el error de permiso)
+          sudo docker build -t mi-proyecto-profe .
+          sudo docker stop contenedor-profe || true
+          sudo docker rm contenedor-profe || true
+          sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
