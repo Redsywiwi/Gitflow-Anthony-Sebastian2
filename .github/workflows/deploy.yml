@@ -1,33 +1,28 @@
-name: Deploy EC2
+name: Despliegue Automático con Docker en AWS
 
 on:
   push:
-    branches:
-      - develop
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ~/Gitflow-Anthony-Sebastian2
-
-            git fetch origin
-            git checkout develop
-            git pull origin develop
-
-            chmod +x mvnw
-
-            ./mvnw clean package -DskipTests
-
-            docker compose down || true
-            docker compose up -d --build
+    - name: Conectarse a AWS y actualizar Docker
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}  # <-- Cambiamos esto para que use tu secreto de ayer
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          # Entrar a la carpeta (Ojo: asegúrate de que se llame así en tu AWS)
+          cd /home/${{ secrets.EC2_USERNAME }}/Gitflow-Anthony-Sebastian2-main || cd /var/www/html
+          
+          # Descargar cambios
+          git pull origin main
+          
+          # Comandos de Docker
+          docker build -t mi-proyecto-profe .
+          docker stop contenedor-profe || true
+          docker rm contenedor-profe || true
+          docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
