@@ -1,20 +1,20 @@
-# 1. Le decimos a Docker que use Node.js
+# Usa una imagen base de Node.js
 FROM node:18
 
-# 2. Creamos una carpeta dentro de Docker para guardar el proyecto
+# Define el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# 3. Copiamos los archivos que dicen qué librerías usa tu proyecto
+# Copia los archivos de dependencias primero
 COPY package*.json ./
 
-# 4. Instalamos esas librerías dentro de Docker
+# Instala las dependencias
 RUN npm install
 
-# 5. Copiamos todo el resto de tu código
+# Copia TODO el resto del código fuente
 COPY . .
 
-# 6. Decimos en qué puerto va a funcionar (ejemplo: el 3000)
+# Expone el puerto (ajústalo si tu app usa otro)
 EXPOSE 3000
 
-# 7. El comando para encender tu aplicación
+# Comando para iniciar la aplicación
 CMD ["npm", "start"]
