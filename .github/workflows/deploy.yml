@@ -1,0 +1,33 @@
+name: Deploy EC2
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Gitflow-Anthony-Sebastian2
+
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+
+            chmod +x mvnw
+
+            ./mvnw clean package -DskipTests
+
+            docker compose down || true
+            docker compose up -d --build
