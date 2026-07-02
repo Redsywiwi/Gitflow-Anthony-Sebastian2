@@ -15,19 +15,14 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}  # <-- Cambiamos esto para que use tu secreto de ayer
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # 1. Asegúrate de estar en la carpeta correcta donde está tu código
-          # Cambia 'nombre-de-tu-carpeta' por el nombre real de la carpeta en tu AWS
-          cd /home/ec2-user/Gitflow-Anthony-Sebastian2-main 
+          # Navegamos a la carpeta donde resides el proyecto
+          cd /home/ec2-user/Gitflow-Anthony-Sebastian2-main
           
-          # 2. Descarga los últimos cambios del repositorio
+          # Descargamos los últimos cambios
           git pull origin main
           
-          # 3. Construye el contenedor (esto debe estar en la misma carpeta que el Dockerfile)
+          # Construimos y ejecutamos usando sudo para permisos de Docker
           sudo docker build -t mi-proyecto-profe .
-          
-          # 4. Detén y elimina el contenedor anterior si existe
           sudo docker stop contenedor-profe || true
           sudo docker rm contenedor-profe || true
-          
-          # 5. Ejecuta el nuevo contenedor
           sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
