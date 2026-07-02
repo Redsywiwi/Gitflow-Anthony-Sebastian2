@@ -16,7 +16,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ EC2_HOST }}
-          username: ${{ EC2_USER }}
+          username: ${{ EC2_USERNAME }}
           key: ${{ SSH_KEY }}
           script: |
             cd ~/Gitflow-Anthony-Sebastian2
