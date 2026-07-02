@@ -11,9 +11,9 @@ jobs:
     - name: Conectarse a AWS y actualizar Docker
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ EC2_HOST }}         # La IP de tu AWS (guardada en GitHub)
-        username: ${{ EC2_USERNAME }}      # El usuario de tu AWS (suele ser ubuntu)
-        key: ${{ SSH_KEY }}       # Tu llave .pem (guardada en GitHub)
+        host: ${{ secrets.EC2_HOST }}         # La IP de tu AWS (guardada en GitHub)
+        username: ${{ secrets.EC2_USERNAME }}      # El usuario de tu AWS (suele ser ubuntu)
+        key: ${{ secrets.SSH_KEY }}       # Tu llave .pem (guardada en GitHub)
         script: |
           # 1. Entrar a la carpeta del proyecto en AWS
           cd /home/ubuntu/Gitflow-Anthony-Sebastian2-main
