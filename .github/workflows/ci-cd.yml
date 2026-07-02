@@ -15,18 +15,12 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}      # El usuario de tu AWS (suele ser ubuntu)
         key: ${{ secrets.SSH_KEY }}       # Tu llave .pem (guardada en GitHub)
         script: |
-          # 1. Entrar a la carpeta del proyecto en AWS
-          cd /home/ubuntu/Gitflow-Anthony-Sebastian2-main
-          
-          # 2. Descargar los últimos cambios que subiste a GitHub
+          cd /home/ec2-user/Gitflow-Anthony-Sebastian2
           git pull origin main
-          
-          # 3. Crear el "Tupperware" (Imagen de Docker) con tu nuevo código
-          docker build -t mi-proyecto-profe .
-          
-          # 4. Si ya había una versión vieja corriendo, la apagamos para no chocar
-          docker stop contenedor-profe || true
-          docker rm contenedor-profe || true
-          
-          # 5. Encendemos el nuevo contenedor en el puerto de internet (80)
-          docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
+          # Construimos la imagen con el nuevo Dockerfile
+          sudo docker build -t mi-proyecto-profe .
+          # Detenemos y borramos el anterior
+          sudo docker stop contenedor-profe || true
+          sudo docker rm contenedor-profe || true
+          # Ejecutamos el nuevo
+          sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe

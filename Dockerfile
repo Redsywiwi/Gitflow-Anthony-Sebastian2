@@ -1,20 +1,14 @@
-# Usa una imagen base de Node.js
-FROM node:18
-
-# Define el directorio de trabajo dentro del contenedor
+# 1. Fase de construcción
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Copia los archivos de dependencias primero
-COPY package*.json ./
-
-# Instala las dependencias
-RUN npm install
-
-# Copia TODO el resto del código fuente
-COPY . .
-
-# Expone el puerto (ajústalo si tu app usa otro)
+# 2. Fase de ejecución
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+# Asegúrate de que el nombre del jar coincida con el que genera tu proyecto (revisa la carpeta target)
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 3000
-
-# Comando para iniciar la aplicación
-CMD ["npm", "start"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
