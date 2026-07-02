@@ -15,18 +15,20 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}  # <-- Cambiamos esto para que use tu secreto de ayer
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # Intentamos buscar dónde quedó tu carpeta
-          if [ -d "/home/ec2-user/Gitflow-Anthony-Sebastian2-main" ]; then
-            cd /home/ec2-user/Gitflow-Anthony-Sebastian2-main
+          # Vamos a donde vive tu usuario ec2-user
+          cd /home/ec2-user
+          
+          # Si la carpeta del proyecto ya existe, entramos. Si no, clonamos.
+          if [ -d "Gitflow-Anthony-Sebastian2-main" ]; then
+            cd Gitflow-Anthony-Sebastian2-main
+            git pull origin main
           else
-            echo "Carpeta no encontrada en /home/ec2-user, intentando otro lugar..."
-            cd /home/ec2-user
+            # Esto es por si la carpeta no existe, el robot la crea
+            git clone https://github.com/Redsywiwi/Gitflow-Anthony-Sebastian2.git
+            cd Gitflow-Anthony-Sebastian2
           fi
           
-          # Descargar cambios
-          git pull origin main
-          
-          # Ejecutar Docker con sudo (para evitar el error de permiso)
+          # Construimos y ejecutamos con sudo para evitar errores de permisos
           sudo docker build -t mi-proyecto-profe .
           sudo docker stop contenedor-profe || true
           sudo docker rm contenedor-profe || true
