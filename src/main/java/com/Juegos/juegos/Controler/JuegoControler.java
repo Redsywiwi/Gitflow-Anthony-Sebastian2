@@ -54,7 +54,9 @@ public class JuegoControler{
     }
 
 
+
     @PutMapping("/{id}")
+    @PutMapping("{/id}")
     public ResponseEntity<Juego> actualizar(@PathVariable Integer id, @RequestBody Juego juego){
         try {
             Juego jue = juegoService.findById(id);
@@ -74,7 +76,11 @@ public class JuegoControler{
 
 
     @DeleteMapping("/{id}")
+
     public ResponseEntity<?> eliminar(@PathVariable Integer id){
+
+    public ResponseEntity<?> eliminar(@PathVariable Long id){
+
         try{
             juegoService.delete(id);
             return ResponseEntity.noContent().build();
