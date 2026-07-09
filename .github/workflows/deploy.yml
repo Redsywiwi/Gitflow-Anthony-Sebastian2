@@ -1,23 +1,58 @@
-name: Despliegue Automático con Docker en AWS
+name: Deploy to AWS EC2
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Conectarse a AWS y actualizar Docker
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USERNAME }}  # <-- Cambiamos esto para que use tu secreto de ayer
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          cd /home/ec2-user/Gitflow-Anthony-Sebastian2
-          git pull origin main
-          sudo docker build -t mi-proyecto-profe .
-          sudo docker stop contenedor-profe || true
-          sudo docker rm contenedor-profe || true
-          sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Desplegar en EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+
+            cd /home/ec2-user/Gitflow-Anthony-Sebastian2
+
+            git fetch origin
+            git reset --hard origin/main
+
+            chmod +x mvnw
+            ./mvnw clean package -DskipTests
+
+            sudo docker network create juegos-network || true
+
+            sudo docker stop mysql-db || true
+            sudo docker rm mysql-db || true
+
+            sudo docker run -d \
+              --name mysql-db \
+              --network juegos-network \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=BibliotecaJuegos \
+              mysql:8
+
+            echo "Esperando a que MySQL inicie..."
+            sleep 30
+
+            sudo docker stop springboot-app || true
+            sudo docker rm springboot-app || true
+
+            sudo docker build -t juegos-app .
+
+            sudo docker run -d \
+              --name springboot-app \
+              --network juegos-network \
+              -p 8080:8080 \
+              juegos-app
+
+            sudo docker image prune -f

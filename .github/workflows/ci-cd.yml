@@ -1,31 +1,45 @@
-name: Despliegue Automático con Docker en AWS
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ] # Se activa cada vez que haces push a main
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+
+  build-test-security:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Conectarse a AWS y actualizar Docker
-      uses: appleboy/ssh-action@master
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v4
       with:
-        host: ${{ secrets.EC2_HOST }}         # La IP de tu AWS (guardada en GitHub)
-        username: ${{ secrets.EC2_USERNAME }}      # El usuario de tu AWS (suele ser ubuntu)
-        key: ${{ secrets.SSH_KEY }}       # Tu llave .pem (guardada en GitHub)
-        script: |
-          cd /home/ec2-user/Gitflow-Anthony-Sebastian2
-          git pull origin main
-          
-          # 1. Compilamos primero en el servidor
-          chmod +x mvnw
-          ./mvnw clean package -DskipTests
-          
-          # 2. Construimos la imagen (usando el jar que acabamos de crear)
-          sudo docker build -t mi-proyecto-profe .
-          
-          # 3. Desplegamos
-          sudo docker stop contenedor-profe || true
-          sudo docker rm contenedor-profe || true
-          sudo docker run -d -p 80:3000 --name contenedor-profe mi-proyecto-profe
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Grant execute permission
+      run: chmod +x mvnw
+
+    - name: Run Unit Tests
+      run: ./mvnw clean test
+
+    - name: Build Application
+      run: ./mvnw clean package -DskipTests
+
+    - name: Build Docker Image
+      run: docker build -t springboot-app .
+
+    - name: Start Containers
+      run: docker compose up -d
+
+    - name: Verify Running Containers
+      run: docker ps
