@@ -31,8 +31,6 @@ public class JuegoControler{
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(juegos);
-
-        
     }
 
     @PostMapping
@@ -40,7 +38,6 @@ public class JuegoControler{
         Juego productoNuevo = juegoService.save(juego);
         return ResponseEntity.status(HttpStatus.CREATED).body(productoNuevo);
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<Juego> buscar (@PathVariable Integer id){
@@ -53,10 +50,7 @@ public class JuegoControler{
         }
     }
 
-
-
     @PutMapping("/{id}")
-    @PutMapping("{/id}")
     public ResponseEntity<Juego> actualizar(@PathVariable Integer id, @RequestBody Juego juego){
         try {
             Juego jue = juegoService.findById(id);
@@ -67,25 +61,19 @@ public class JuegoControler{
             jue.setDesarrollador(juego.getDesarrollador());
 
             juegoService.save(jue);
-            return ResponseEntity.ok(juego);}
-
-            catch(Exception e){
-                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(jue);
+        } catch(Exception e){
+            return ResponseEntity.notFound().build();
         }
     }
 
-
     @DeleteMapping("/{id}")
-
     public ResponseEntity<?> eliminar(@PathVariable Integer id){
-
-    public ResponseEntity<?> eliminar(@PathVariable Long id){
-
         try{
             juegoService.delete(id);
             return ResponseEntity.noContent().build();
         }catch (Exception e){
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
     }
 }
